@@ -2,7 +2,7 @@ name: Firmware Readiness Baseline
 on:
   push:
     branches:
-      - bespoke/firmware-verdict-baseline
+      - feature/firmware-readiness
   workflow_dispatch:
 jobs:
   baseline:
