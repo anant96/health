@@ -69,3 +69,33 @@ func TestRequestValidation(t *testing.T){
  r:=Request{ResourceID:"host-1",Policy:Policy{Revision:"v1"},Devices:[]string{"disk"}}
  if _,err:=Evaluate(context.Background(),r,f);err==nil{t.Fatal("missing side must be rejected")}
 }
+
+type waitingInspector struct { entered chan struct{} }
+func (w waitingInspector) Inspect(ctx context.Context, _ string) (string,error) {
+ close(w.entered)
+ <-ctx.Done()
+ return "",ctx.Err()
+}
+
+// A cancelled inspection must never be promoted to a reusable complete verdict.
+func TestCancelledInspectionIsIncomplete(t *testing.T) {
+ ctx,cancel:=context.WithCancel(context.Background())
+ entered:=make(chan struct{})
+ done:=make(chan Decision,1)
+ errs:=make(chan error,1)
+ request:=Request{ResourceID:"host-cancel",Side:Source,Policy:Policy{Revision:"v1"},Devices:[]string{"disk"}}
+ go func() { got,err:=Evaluate(ctx,request,waitingInspector{entered});done<-got;errs<-err }()
+ <-entered
+ cancel()
+ got:=<-done
+ if err:=<-errs;err!=nil {t.Fatal(err)}
+ if !got.Allowed || got.Definitive || len(got.IncompleteDevices)!=1 {
+  t.Fatalf("cancelled check returned %+v",got)
+ }
+}
+
+func TestDuplicateDeviceRejected(t *testing.T) {
+ req:=Request{ResourceID:"host-1",Side:Source,Policy:Policy{Revision:"v1"},Devices:[]string{"disk","disk"}}
+ _,err:=Evaluate(context.Background(),req,&fakeInspector{})
+ if err==nil {t.Fatal("duplicate device IDs must be rejected")}
+}
