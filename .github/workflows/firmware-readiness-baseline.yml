@@ -2,7 +2,7 @@ name: Firmware Readiness Baseline
 on:
   push:
     branches:
-      - feature/firmware-readiness
+      - firmware-readiness
   workflow_dispatch:
 jobs:
   baseline:
