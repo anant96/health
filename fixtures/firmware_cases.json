@@ -1,0 +1,5 @@
+[
+ {"name":"complete_allow","devices":{"a":"ok","b":"ok"},"unreadable":[],"excluded":["bad"],"allowed":true,"definitive":true},
+ {"name":"incomplete_allow","devices":{"b":"ok"},"unreadable":["a"],"excluded":["bad"],"allowed":true,"definitive":false},
+ {"name":"definite_block_partial_evidence","devices":{"a":"bad"},"unreadable":["b"],"excluded":["bad"],"allowed":false,"definitive":true}
+]
