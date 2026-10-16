@@ -1,0 +1,20 @@
+name: Firmware Readiness Baseline
+on:
+  push:
+    branches:
+      - bespoke/firmware-verdict-baseline
+  workflow_dispatch:
+jobs:
+  baseline:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.23'
+      - name: Test real repository
+        run: go test -count=1 ./...
+      - name: Run race detector
+        run: go test -race -count=1 ./...
+      - name: Static analysis
+        run: go vet ./...
